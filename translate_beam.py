@@ -16,7 +16,7 @@ from seq2seq.beam import BeamSearch, BeamSearchNode
 def get_args():
     """ Defines generation-specific hyper-parameters. """
     parser = argparse.ArgumentParser('Sequence to Sequence Model')
-    parser.add_argument('--cuda', default=False, help='Use a GPU')
+    parser.add_argument('--cuda', default=True, help='Use a GPU')
     parser.add_argument('--seed', default=42, type=int, help='pseudo random number generator seed')
 
     # Add data arguments
@@ -29,6 +29,7 @@ def get_args():
 
     # Add beam search arguments
     parser.add_argument('--beam-size', default=5, type=int, help='number of hypotheses expanded in beam search')
+    parser.add_argument('--alpha', default=0.6, type=float, help='alpha value for beam search normalisation')
 
     return parser.parse_args()
 
@@ -37,7 +38,7 @@ def main(args):
     """ Main translation function' """
     # Load arguments from checkpoint
     torch.manual_seed(args.seed)
-    state_dict = torch.load(args.checkpoint_path, map_location=lambda s, l: default_restore_location(s, 'cpu'))
+    state_dict = torch.load(args.checkpoint_path, map_location=lambda s, l: default_restore_location(s, 'cuda'))
     args_loaded = argparse.Namespace(**{**vars(args), **vars(state_dict['args'])})
     args_loaded.data = args.data
     args = args_loaded
@@ -116,7 +117,7 @@ def main(args):
                 node = BeamSearchNode(searches[i], emb, lstm_out, final_hidden, final_cell,
                                       mask, torch.cat((go_slice[i], next_word)), log_p, 1)
                 # __QUESTION 3: Why do we add the node with a negative score?
-                searches[i].add(-node.eval(), node)
+                searches[i].add(-node.eval(args.alpha), node)
 
         # Start generating further tokens until max sentence length reached
         for _ in range(args.max_len-1):
