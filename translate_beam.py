@@ -170,14 +170,14 @@ def main(args):
                         node = BeamSearchNode(search, node.emb, node.lstm_out, node.final_hidden,
                                               node.final_cell, node.mask, torch.cat((prev_words[i][0].view([1]),
                                               next_word)), node.logp, node.length)
-                        search.add_final(-node.eval(), node)
+                        search.add_final(-node.eval(args.alpha), node)
 
                     # Add the node to current nodes for next iteration
                     else:
                         node = BeamSearchNode(search, node.emb, node.lstm_out, node.final_hidden,
                                               node.final_cell, node.mask, torch.cat((prev_words[i][0].view([1]),
                                               next_word)), node.logp + log_p, node.length + 1)
-                        search.add(-node.eval(), node)
+                        search.add(-node.eval(args.alpha), node)
 
             # __QUESTION 5: What happens internally when we prune our beams?
             # How do we know we always maintain the best sequences?

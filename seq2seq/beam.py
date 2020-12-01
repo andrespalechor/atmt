@@ -86,6 +86,6 @@ class BeamSearchNode(object):
     def eval(self, alpha):
         """ Returns score of sequence up to this node """
         # TODO :Modify here the function to return the normalized form of the score.
-        p = self.logProb
+        p = self.logp
         l = ((5+abs(self.length))**alpha)/(5+1)**alpha
         return p/l
